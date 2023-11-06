@@ -1,10 +1,10 @@
 import numpy as np
 import math
-from scipy.sparse import csr_matrix, eye, save_npz, diags
+from scipy.sparse import csr_matrix, eye, diags
 
 A = 4       # forward rate
 B = 2       # backward rate
-N = 2       # matrix size: assumes N > 1
+N = 10       # matrix size: assumes N > 1
 T = 1       # time
 K = 100     # num terms to sum, on select examples K=100 seems pretty stable
 
@@ -25,16 +25,6 @@ def generate_rate_matrix(a, b, n):
     rate_matrix = csr_matrix((data, (row_indices, column_indices)), shape=(n, n))
     return rate_matrix
 
-def generate_const_matrix(num, n):      # csr matrices can't directly add non-zero scalars
-    data = [num for i in range(n**2)]
-    row_indices = []
-    column_indices = []
-    for i in range(n):
-        row_indices += [i for j in range(n)]
-        column_indices += [j for j in range(n)]
-    m = csr_matrix((data, (row_indices, column_indices)), shape=(n, n))
-    return m
-
 def factorial_memo(n):
     memo = [1]
     for i in range(1, n):
@@ -52,15 +42,13 @@ def standard_exponential(q, t, k):
     return sum
 
 def unif_exponential(matrix, a, b, t, k):
-    largest = a + b              
+    largest = a + b
     if matrix.shape[0] < 3:
         largest = max(a, b)
-    add_m = generate_const_matrix(largest, matrix.shape[0]) 
+    add_m = diags([largest], [0], shape=matrix.shape, format='csr')
     shifted_m = matrix + add_m
-    shifted_exp = standard_exponential(shifted_m, t, k)
-    diag_m = diags([-1*largest*t], [0], shape=matrix.shape, format='csr')
-    diag_exp = standard_exponential(diag_m, t, k)
-    unif_m = shifted_exp @ diag_exp
+    e_const = math.exp(-1*largest*t)
+    unif_m = standard_exponential(shifted_m, t, k) * e_const
     return unif_m
 
 q_matrix = generate_rate_matrix(A, B, N)
