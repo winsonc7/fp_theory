@@ -1,12 +1,12 @@
 import numpy as np
 import math
-from scipy.sparse import csr_matrix, eye, save_npz
+from scipy.sparse import csr_matrix, eye, save_npz, diags
 
 A = 4       # forward rate
 B = 2       # backward rate
-N = 3       # matrix size: assumes N > 1
+N = 2       # matrix size: assumes N > 1
 T = 1       # time
-K = 100      # num terms to sum: assumes K > 1
+K = 100     # num terms to sum, on select examples K=100 seems pretty stable
 
 
 def generate_rate_matrix(a, b, n):
@@ -25,7 +25,7 @@ def generate_rate_matrix(a, b, n):
     rate_matrix = csr_matrix((data, (row_indices, column_indices)), shape=(n, n))
     return rate_matrix
 
-def generate_const_matrix(num, n):
+def generate_const_matrix(num, n):      # csr matrices can't directly add non-zero scalars
     data = [num for i in range(n**2)]
     row_indices = []
     column_indices = []
@@ -52,17 +52,21 @@ def standard_exponential(q, t, k):
     return sum
 
 def unif_exponential(matrix, a, b, t, k):
-    larger = max(a, b)              # csr matrices can't directly add non-zero scalars
-    add_m = generate_const_matrix(larger, matrix.shape[0])
+    largest = a + b              
+    if matrix.shape[0] < 3:
+        largest = max(a, b)
+    add_m = generate_const_matrix(largest, matrix.shape[0]) 
     shifted_m = matrix + add_m
-    e_const = math.exp(-1*larger*t)
-    unif_m = standard_exponential(shifted_m, t, k) * e_const
+    shifted_exp = standard_exponential(shifted_m, t, k)
+    diag_m = diags([-1*largest*t], [0], shape=matrix.shape, format='csr')
+    diag_exp = standard_exponential(diag_m, t, k)
+    unif_m = shifted_exp @ diag_exp
     return unif_m
 
 q_matrix = generate_rate_matrix(A, B, N)
 
-# standard_answer = standard_exponential(q_matrix, T, K)
-# np.savetxt("p_matrix_standard.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
+standard_answer = standard_exponential(q_matrix, T, K)
+np.savetxt("p_matrix_standard.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
 
 unif_answer = unif_exponential(q_matrix, A, B, T, K)
 np.savetxt("p_matrix_unif.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
