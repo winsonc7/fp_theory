@@ -2,14 +2,15 @@ import numpy as np
 import math
 from scipy.sparse import csr_matrix, eye, diags
 
-A = 4       # forward rate
-B = 2       # backward rate
-N = 10       # matrix size: assumes N > 1
-T = 1       # time
-K = 100     # num terms to sum, on select examples K=100 seems pretty stable
+A = 5       # forward rate
+B = 11       # backward rate: more stable if B > A
+N = 10      # matrix size: assumes N > 1
+T = 2       # time
+K = 200     # num terms to sum, on select examples K=200 seems pretty stable
 
+# Output files are labeled like the following: standard/unif_A_B_N_T_K.csv
 
-def generate_rate_matrix(a, b, n):
+def generate_MM1_rate_matrix(a, b, n):
     data = [a*-1, a]            # first row
     row_indices = [0, 0]
     column_indices = [0, 1]
@@ -25,20 +26,15 @@ def generate_rate_matrix(a, b, n):
     rate_matrix = csr_matrix((data, (row_indices, column_indices)), shape=(n, n))
     return rate_matrix
 
-def factorial_memo(n):
-    memo = [1]
-    for i in range(1, n):
-        memo.append(memo[-1] * i)
-    return memo
-
 def standard_exponential(q, t, k):
-    f_memo = factorial_memo(k)      # calculates factorials beforehand, idk felt like it'd be faster
     new_q = t * q
     curr_q = eye(new_q.shape[0], format='csr')          # identity matrix
+    old = curr_q
     sum = curr_q
     for i in range(1, k):
-        curr_q = curr_q @ new_q         # multiplication of sparse matrices
-        sum += curr_q / f_memo[i]
+        curr_q = (old @ new_q) / i
+        old = curr_q
+        sum += curr_q
     return sum
 
 def unif_exponential(matrix, a, b, t, k):
@@ -51,10 +47,10 @@ def unif_exponential(matrix, a, b, t, k):
     unif_m = standard_exponential(shifted_m, t, k) * e_const
     return unif_m
 
-q_matrix = generate_rate_matrix(A, B, N)
+q_matrix = generate_MM1_rate_matrix(A, B, N)
 
 standard_answer = standard_exponential(q_matrix, T, K)
-np.savetxt("p_matrix_standard.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
+np.savetxt("outputs/s_5_11_10_2_200.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
 
 unif_answer = unif_exponential(q_matrix, A, B, T, K)
-np.savetxt("p_matrix_unif.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
+np.savetxt("outputs/u_5_11_10_2_200.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
