@@ -3,10 +3,10 @@ import math
 from scipy.sparse import csr_matrix, eye, diags
 from scipy.linalg import expm
 
-A = 5       # forward rate
-B = 11       # backward rate: more stable if B > A
+A = 10       # forward rate
+B = 13       # backward rate: more stable if B > A
 N = 10      # matrix size: assumes N > 1
-T = 2       # time
+T = 15       # time
 K = 500     # num terms to sum
 
 # Output files are labeled like the following: standard/unif/benchmark_A_B_N_T_K.csv
@@ -49,14 +49,13 @@ def unif_exponential(matrix, a, b, t, k):
     return unif_m
 
 q_matrix = generate_MM1_rate_matrix(A, B, N)
-
 q_t = q_matrix * T
 dense_m = q_t.toarray()
-# benchmark_answer = expm(dense_m)
-# np.savetxt("outputs/b_10_13_10_15.csv", benchmark_answer, delimiter=',', fmt='%f')
+benchmark_answer = expm(dense_m)
+np.savetxt("outputs/b_10_13_10_15.csv", benchmark_answer, delimiter=',', fmt='%f')
 
-standard_answer = standard_exponential(q_matrix, T, K)
-np.savetxt("outputs/s_5_11_10_2_500.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
+# standard_answer = standard_exponential(q_matrix, T, K)
+# np.savetxt("outputs/s_5_11_10_2_500.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
 
 # unif_answer = unif_exponential(q_matrix, A, B, T, K)
 # np.savetxt("outputs/u_10_13_15_10_200.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
