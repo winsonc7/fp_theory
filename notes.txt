@@ -1,0 +1,9 @@
+For 32-bit floating point numbers, the largest number that includes a decimal
+that can be stored is 8388607.5, which means for all numbers >= 8388608, no
+decimal precision can be contained. Thus, we can guarantee an inability to
+contain decimal precision when we calculate e^{a} and the magnitude of some
+a^{n} / n! term exceeds 8388608.
+
+a = 19 is the first value where some term exceeds 8388608, with
+19^{14} / 14! = 9165202.4235. Note 19^{13} / 13! ~ 6.7 million, and
+the highest value when a = 18 is 18^{17} / 17! ~ 6.1 million

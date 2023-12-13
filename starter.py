@@ -3,11 +3,11 @@ import math
 from scipy.sparse import csr_matrix, eye, diags
 from scipy.linalg import expm
 
-A = 1       # forward rate
-B = 2       # backward rate: more stable if B > A
+A = 2       # forward rate
+B = 15       # backward rate: more stable if B > A
 N = 10      # matrix size: assumes N > 1
 T = 1       # time
-K = 215    # num terms to sum
+K = 407    # num terms to sum
 
 np.seterr(all='raise')
 
@@ -55,10 +55,10 @@ q_matrix = generate_MM1_rate_matrix(A, B, N)
 q_t = q_matrix * T
 dense_m = q_t.toarray()
 benchmark_answer = expm(dense_m)
-np.savetxt(f"curr_tests/b_{A}_{B}_{N}_{T}.csv", benchmark_answer, delimiter=',', fmt='%f')
+# np.savetxt(f"curr_tests/b_{A}_{B}_{N}_{T}.csv", benchmark_answer, delimiter=',', fmt='%f')
 
-# standard_answer = standard_exponential(q_matrix, T, K)
-# np.savetxt(f"curr_tests/s_{A}_{B}_{N}_{T}_{K}.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
+standard_answer = standard_exponential(q_matrix, T, K)
+np.savetxt(f"curr_tests/s_{A}_{B}_{N}_{T}_{K}.csv", standard_answer.toarray(), delimiter=',', fmt='%f')
 
-unif_answer = unif_exponential(q_matrix, A, B, T, K)
-np.savetxt(f"curr_tests/u_{A}_{B}_{N}_{T}_{K}.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
+# unif_answer = unif_exponential(q_matrix, A, B, T, K)
+# np.savetxt(f"curr_tests/u_{A}_{B}_{N}_{T}_{K}.csv", unif_answer.toarray(), delimiter=',', fmt='%f')
